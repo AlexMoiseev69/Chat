@@ -12,11 +12,10 @@ namespace Chat.SocketProtocol
     class Client
     {
         private UserInfo userInfo;
-        private System.Windows.Forms.RichTextBox richTextBox1;
         private RichTextBox richTextBox;
         private ClientListener clientListener;
 
-        public Client(UserInfo userInfo, RichTextBox richTextBox, ClientListener clientListener)
+        public Client(UserInfo userInfo, RichTextBox richTextBox, ClientListener clientListener=null)
         {
             this.userInfo = userInfo;
             this.richTextBox = richTextBox;
@@ -34,19 +33,24 @@ namespace Chat.SocketProtocol
                 for (int i = 0; i < bytesRead; i++)
                     msg += Convert.ToChar(bytes[i]);
                 printMessage(userInfo.getName()+":" + msg);
-                sendAnotherMessage(userInfo.getName() + ":" + msg);
+                sendAnotherMessage(userInfo.getName() + ":" + msg, userInfo.getTcpClient());
             }
         }
 
-        private void sendAnotherMessage(string msg)
+        private void sendAnotherMessage(string msg, TcpClient tcpClientSender)
         {
-            foreach (TcpClient tcpClient in clientListener.mapUsers.Values)
+            if (clientListener != null)
             {
-                NetworkStream serverStream = tcpClient.GetStream();
-                byte[] outStream = Encoding.ASCII.GetBytes(msg);
-                serverStream.Write(outStream, 0, outStream.Length);
-                serverStream.Flush();
-            }
+                foreach (TcpClient tcpClient in clientListener.mapUsers.Values)
+                {
+                    if (tcpClient.Equals(tcpClientSender))
+                        continue;
+                    NetworkStream serverStream = tcpClient.GetStream();
+                    byte[] outStream = Encoding.ASCII.GetBytes(msg);
+                    serverStream.Write(outStream, 0, outStream.Length);
+                    serverStream.Flush();
+                }
+            }       
         }
 
         private void printMessage(String message)

@@ -36,6 +36,7 @@ namespace SocketProtocol.Controller
                 String login=String.Empty;
                 for (int i = 0; i < bytesRead; i++)
                     login+=Convert.ToChar(bytes[i]);
+
                 mapUsers.Add(login, tcpClient);
                 printMessage("User was connected with login: "+login);
                 Client client = new Client(new UserInfo(login, tcpClient), this.richTextBox1, this);

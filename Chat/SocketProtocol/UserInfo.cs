@@ -11,19 +11,11 @@ namespace Chat.SocketProtocol
     {
         private String name;
         private TcpClient tcpClient;
-        private string p;
 
-
-        public UserInfo(string name,  TcpClient tcpClient)
+        public UserInfo(string name,  TcpClient tcpClient=null)
         {
             this.name = name;
             this.tcpClient = tcpClient;
-        }
-
-        public UserInfo(string p)
-        {
-            // TODO: Complete member initialization
-            this.p = p;
         }
 
         public String getName()

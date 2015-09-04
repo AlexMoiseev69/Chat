@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Chat.SocketProtocol;
@@ -29,16 +30,19 @@ namespace Chat
             }
             else
             {
-                userInfo = new UserInfo("User");
+                this.tcpClient = tcpClient;
+                userInfo = new UserInfo("User", tcpClient);
+                Client client = new Client(userInfo, ChatRichTextForm);
+                Thread backgroundThread = new Thread(new ThreadStart(client.listenNewMessage));
+                backgroundThread.Start();
             }
-            this.tcpClient = tcpClient;
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             String msg = MessageRichTextBox.Text;
             MessageRichTextBox.Clear();
-            ChatRichTextForm.Text = userInfo.getName()+":"+msg;
+            ChatRichTextForm.AppendText(userInfo.getName()+":"+msg+"\n");
             sendAnotherUsers(msg);
         }
 
