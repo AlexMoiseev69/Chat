@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Chat.SocketProtocol
 {
-    class UserInfo
+    public class UserInfo
     {
         private String name;
         private TcpClient tcpClient;

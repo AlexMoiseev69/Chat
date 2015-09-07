@@ -31,6 +31,7 @@
             this.ChatRichTextForm = new System.Windows.Forms.RichTextBox();
             this.button1 = new System.Windows.Forms.Button();
             this.MessageRichTextBox = new System.Windows.Forms.RichTextBox();
+            this.listUsers = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
             // 
             // ChatRichTextForm
@@ -60,18 +61,25 @@
             this.MessageRichTextBox.TabIndex = 2;
             this.MessageRichTextBox.Text = "";
             // 
+            // listUsers
+            // 
+            this.listUsers.FormattingEnabled = true;
+            this.listUsers.Location = new System.Drawing.Point(599, 12);
+            this.listUsers.Name = "listUsers";
+            this.listUsers.Size = new System.Drawing.Size(147, 290);
+            this.listUsers.TabIndex = 3;
+            // 
             // ChatForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(586, 469);
+            this.ClientSize = new System.Drawing.Size(758, 469);
+            this.Controls.Add(this.listUsers);
             this.Controls.Add(this.MessageRichTextBox);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.ChatRichTextForm);
             this.Name = "ChatForm";
             this.Text = "Form1";
-            this.Load += new System.EventHandler(this.Form1_Load);
-            this.Leave += new System.EventHandler(this.ChatForm_Leave);
             this.ResumeLayout(false);
 
         }
@@ -81,6 +89,7 @@
         private System.Windows.Forms.RichTextBox ChatRichTextForm;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.RichTextBox MessageRichTextBox;
+        private System.Windows.Forms.ListBox listUsers;
     }
 }
 

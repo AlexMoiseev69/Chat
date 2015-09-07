@@ -17,23 +17,25 @@ namespace Chat
     {
         private Boolean isServer;
         private SocketServer socketServer;
-        private UserInfo userInfo;
-        private TcpClient tcpClient;
+        private UserChat userChat;
 
-        public ChatForm(bool isServer = false, TcpClient tcpClient = null)
+        public ChatForm(bool isServer = false, UserInfo userInfo=null)
         {
             InitializeComponent();
             this.isServer = isServer;
             if (isServer)
             {
-                userInfo = new UserInfo("server");
+                socketServer = new SocketServer(8080, this);
+                socketServer.start();
+                ChatRichTextForm.AppendText("Server start\n");
+                userChat = new UserChat(new UserInfo("server"), this);
             }
             else
             {
-                this.tcpClient = tcpClient;
-                userInfo = new UserInfo("User", tcpClient);
-                Client client = new Client(userInfo, ChatRichTextForm);
-                Thread backgroundThread = new Thread(new ThreadStart(client.listenNewMessage));
+                userChat = new UserChat(userInfo, this);
+                userChat.sendMessageObject(new SocketMessageChat(userInfo.getName(), ""));
+                //userChat.sendMessage(userInfo.getName());
+                Thread backgroundThread = new Thread(new ThreadStart(userChat.listenNewMessage));
                 backgroundThread.Start();
             }
         }
@@ -42,42 +44,42 @@ namespace Chat
         {
             String msg = MessageRichTextBox.Text;
             MessageRichTextBox.Clear();
-            ChatRichTextForm.AppendText(userInfo.getName()+":"+msg+"\n");
-            sendAnotherUsers(msg);
+            ChatRichTextForm.AppendText(userChat.getUserInfo().getName()+":"+msg+"\n");
+            sendMsg(msg);
         }
 
-        private void sendAnotherUsers(string msg)
+        private void sendMsg(string msg)
         {
             if (isServer)
             {
-                foreach (TcpClient tcpClient in socketServer.clientList.mapUsers.Values)
-                {
-                    NetworkStream serverStream = tcpClient.GetStream();
-                    byte[] outStream = Encoding.ASCII.GetBytes(msg);
-                    serverStream.Write(outStream, 0, outStream.Length);
-                    serverStream.Flush();
-                }
+                socketServer.serverListener.sendAnotherUsersMessage(msg, null);
             }
             else
             {
-                NetworkStream serverStream = tcpClient.GetStream();
-                byte[] outStream = Encoding.ASCII.GetBytes(msg);
-                serverStream.Write(outStream, 0, outStream.Length);
-                serverStream.Flush();
+                userChat.sendMessage(msg);
             }
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+
+        public void printMessageChat(String message)
         {
-            if (isServer)
+            ChatRichTextForm.Invoke((MethodInvoker)delegate
             {
-                socketServer = new SocketServer(8080, ChatRichTextForm);
-            }
+                ChatRichTextForm.AppendText(message + "\n");
+            });
         }
 
-        private void ChatForm_Leave(object sender, EventArgs e)
+        public void addUserToList(String login)
         {
-            
+            listUsers.Invoke((MethodInvoker) delegate
+            {
+                listUsers.Items.Add(login);
+            });   
+        }
+
+        public void removeUserToListByName(String login)
+        {
+            listUsers.Items.RemoveAt(listUsers.FindString(login));
         }
     }
 }

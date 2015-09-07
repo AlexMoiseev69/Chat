@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Chat.SocketProtocol;
 
 namespace Chat
 {
@@ -32,32 +33,23 @@ namespace Chat
             try
             {
                 clientSocket.Connect(address.Text, Int32.Parse(port.Text));
-
-                NetworkStream serverStream = clientSocket.GetStream();
-                byte[] outStream = Encoding.ASCII.GetBytes(loginText.Text);
-                serverStream.Write(outStream, 0, outStream.Length);
-                serverStream.Flush();
-                ChatForm chatForm = new ChatForm(false, clientSocket);
+                UserInfo userInfo = new UserInfo(loginText.Text, clientSocket);
+                ChatForm chatForm = new ChatForm(false, userInfo);
                 chatForm.Show();
                 this.Hide();
             }
             catch (ArgumentNullException ane)
             {
-                Console.WriteLine("ArgumentNullException : {0}", ane.ToString());
+                MessageBox.Show("ArgumentNullException : {0}", ane.ToString());
             }
             catch (SocketException se)
             {
-                Console.WriteLine("SocketException : {0}", se.ToString());
+                MessageBox.Show("SocketException : {0}", se.Message);
             }
             catch (Exception se)
             {
-                Console.WriteLine("Unexpected exception : {0}", se.ToString());
+                MessageBox.Show("Unexpected exception : {0}", se.ToString());
             }
-        }
-
-        private void Login_Load(object sender, EventArgs e)
-        {
-
         }
     }
 }

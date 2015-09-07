@@ -13,18 +13,23 @@ namespace Chat.SocketProtocol
     internal class SocketServer
     {
         private TcpListener Listener; // Объект, принимающий TCP-клиентов
-        public ClientListener clientList;
+        public ServerListener serverListener;
+        private int port;
+        private ChatForm chatForm;
         // делегат для ожидания соединения
-        public SocketServer(int port, System.Windows.Forms.RichTextBox richTextBox1)
+        public SocketServer(int port, ChatForm chatForm)
+        {
+            this.chatForm = chatForm;
+            this.port = port;
+        }
+
+        public void start()
         {
             Listener = new TcpListener(IPAddress.Any, port);
-
             Listener.Start(); // Запускаем его
-            richTextBox1.Text = "Server start\n";
-            clientList = new ClientListener(Listener, richTextBox1);
-
-            Thread backgroundThread = new Thread(new ThreadStart(clientList.listenNewUser));
-            backgroundThread.Start();
+            serverListener = new ServerListener(Listener, chatForm);
+            Thread backgroundThread = new Thread(new ThreadStart(serverListener.listenNewUser));
+            backgroundThread.Start();   
         }
 
         ~SocketServer()
