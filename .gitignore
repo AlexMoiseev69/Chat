@@ -10,7 +10,8 @@
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
-
+Chat/bin
+Chat/obj
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
