@@ -7,6 +7,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Chat.Message;
 using SocketProtocol.Controller;
 
 namespace Chat.SocketProtocol
@@ -28,31 +29,33 @@ namespace Chat.SocketProtocol
         {
             while (true)
             {
-                String msg = listenMsg();
-                chatForm.printMessageChat(userInfo.getName()+":" + msg);
-                if (serverListener != null)
+                TcpMessage msg = listenMsgObject();
+                switch (msg.getType())
                 {
-                    serverListener.sendAnotherUsersMessage(userInfo.getName() + ":" + msg, userInfo.getTcpClient());
+                    case TcpMessage.TypeMsg.Msg:
+                        chatForm.printMessageChat(msg.getLogin()+":" + msg.getMsg());
+                        if (serverListener != null)
+                        {
+                            serverListener.sendAnotherUsersMessage(msg, userInfo.getTcpClient());
+                        }
+                        break;
+                    case TcpMessage.TypeMsg.Logout:
+                        //TODO: implement this
+                        break;
+                    default:
+                        chatForm.printError(msg);
+                        break;
                 }
+                
             }
         }
 
-        private String listenMsg()
-        {
-            NetworkStream stream = userInfo.getTcpClient().GetStream();
-            byte[] bytes = new Byte[256];
-            int bytesRead = stream.Read(bytes, 0, bytes.Length);
-            String msg = String.Empty;
-            for (int i = 0; i < bytesRead; i++)
-                msg += Convert.ToChar(bytes[i]);
-            return msg;
-        }
-        private SocketMessageChat listenMsgObject()
+        private TcpMessage listenMsgObject()
         {
             NetworkStream stream = userInfo.getTcpClient().GetStream();
             IFormatter formatter = new BinaryFormatter();
 
-            SocketMessageChat obj = (SocketMessageChat)formatter.Deserialize(stream);
+            TcpMessage obj = (TcpMessage)formatter.Deserialize(stream);
             return obj;
         }
 
@@ -61,15 +64,7 @@ namespace Chat.SocketProtocol
             return userInfo;
         }
 
-        public void sendMessage(string msg)
-        {
-            NetworkStream serverStream = userInfo.getTcpClient().GetStream();
-            byte[] outStream = Encoding.ASCII.GetBytes(msg);
-            serverStream.Write(outStream, 0, outStream.Length);
-            serverStream.Flush();
-        }
-
-        public void sendMessageObject(SocketMessageChat msg)
+        public void sendMessageObject(TcpMessage msg)
         {
             NetworkStream serverStream = userInfo.getTcpClient().GetStream();
             IFormatter formatter = new BinaryFormatter();

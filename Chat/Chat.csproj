@@ -56,9 +56,9 @@
     <Compile Include="Login.Designer.cs">
       <DependentUpon>Login.cs</DependentUpon>
     </Compile>
+    <Compile Include="Message\TcpMessage.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SocketProtocol\SocketMessageChat.cs" />
     <Compile Include="SocketProtocol\UserChat.cs" />
     <Compile Include="SocketProtocol\ServerListener.cs" />
     <Compile Include="SocketProtocol\SocketServer.cs" />

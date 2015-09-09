@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Chat;
+using Chat.Message;
 using Chat.SocketProtocol;
 
 namespace SocketProtocol.Controller
@@ -32,26 +33,36 @@ namespace SocketProtocol.Controller
             while (true)
             {
                 TcpClient tcpClient = Listener.AcceptTcpClient();
-                //String login = getMessage(tcpClient);
-                SocketMessageChat msg = getMessageObj(tcpClient);
-                UserChat userChat = new UserChat(new UserInfo(msg.getLogin(), tcpClient), chatForm, this);
-                Thread backgroundThread = new Thread(new ThreadStart(userChat.listenNewMessage));
-                backgroundThread.Start();
-
-                updateUsersList(userChat);
-                
+                TcpMessage msg = getTcpMessage(tcpClient);
+                if (msg.getType().Equals(TcpMessage.TypeMsg.Login))
+                {
+                    UserChat userChat = new UserChat(new UserInfo(msg.getLogin(), tcpClient), chatForm, this);
+                    Thread backgroundThread = new Thread(new ThreadStart(userChat.listenNewMessage));
+                    backgroundThread.Start();
+                    updateUsersList(userChat);
+                }
+                else
+                {
+                    chatForm.printError(msg);
+                }
             }
         }
 
-        private SocketMessageChat getMessageObj(TcpClient tcpClient)
+        private TcpMessage getTcpMessage(TcpClient tcpClient)
         {
             NetworkStream stream = tcpClient.GetStream();
             IFormatter formatter = new BinaryFormatter();
 
-            SocketMessageChat obj = (SocketMessageChat)formatter.Deserialize(stream);
+            TcpMessage obj = (TcpMessage)formatter.Deserialize(stream);
             return obj;
         }
 
+        private void sendTcpMessage(TcpClient tcpClient, TcpMessage msg)
+        {
+            NetworkStream serverStream = tcpClient.GetStream();
+            IFormatter formatter = new BinaryFormatter();
+            formatter.Serialize(serverStream, msg);  
+        }
         private void updateUsersList(UserChat userChat)
         {
             mapUsers.Add(userChat.getUserInfo().getName(), userChat.getUserInfo().getTcpClient());
@@ -59,28 +70,13 @@ namespace SocketProtocol.Controller
             chatForm.addUserToList(userChat.getUserInfo().getName());
         }
 
-        private String getMessage(TcpClient tcpClient)
-        {
-            NetworkStream stream = tcpClient.GetStream();
-            byte[] bytes = new Byte[256];
-            int bytesRead = stream.Read(bytes, 0, bytes.Length);
-            String msg = String.Empty;
-            for (int i = 0; i < bytesRead; i++)
-                msg += Convert.ToChar(bytes[i]);
-            return msg;
-        }
-
-
-        public void sendAnotherUsersMessage(string msg, TcpClient tcpClientSender)
+        public void sendAnotherUsersMessage(TcpMessage msg, TcpClient tcpClientSender)
         {
             foreach (TcpClient tcpClient in mapUsers.Values)
             {
                 if (tcpClient.Equals(tcpClientSender))
                     continue;
-                NetworkStream serverStream = tcpClient.GetStream();
-                byte[] outStream = Encoding.ASCII.GetBytes(msg);
-                serverStream.Write(outStream, 0, outStream.Length);
-                serverStream.Flush();
+                sendTcpMessage(tcpClient, msg);
             }
         }
     }

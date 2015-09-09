@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Chat.Message;
 using Chat.SocketProtocol;
 
 namespace Chat
@@ -33,7 +34,7 @@ namespace Chat
             else
             {
                 userChat = new UserChat(userInfo, this);
-                userChat.sendMessageObject(new SocketMessageChat(userInfo.getName(), ""));
+                userChat.sendMessageObject(new TcpMessage(TcpMessage.TypeMsg.Login, "", userInfo.getName()));
                 //userChat.sendMessage(userInfo.getName());
                 Thread backgroundThread = new Thread(new ThreadStart(userChat.listenNewMessage));
                 backgroundThread.Start();
@@ -45,10 +46,10 @@ namespace Chat
             String msg = MessageRichTextBox.Text;
             MessageRichTextBox.Clear();
             ChatRichTextForm.AppendText(userChat.getUserInfo().getName()+":"+msg+"\n");
-            sendMsg(msg);
+            sendMsg(new TcpMessage(TcpMessage.TypeMsg.Msg, msg, userChat.getUserInfo().getName()));
         }
 
-        private void sendMsg(string msg)
+        private void sendMsg(TcpMessage msg)
         {
             if (isServer)
             {
@@ -56,7 +57,7 @@ namespace Chat
             }
             else
             {
-                userChat.sendMessage(msg);
+                userChat.sendMessageObject(msg);
             }
         }
 
@@ -67,6 +68,11 @@ namespace Chat
             {
                 ChatRichTextForm.AppendText(message + "\n");
             });
+        }
+
+        public void printError(TcpMessage msg)
+        {
+            printMessageChat("Error login user. Msg:"+msg.getMsg());
         }
 
         public void addUserToList(String login)
@@ -81,5 +87,19 @@ namespace Chat
         {
             listUsers.Items.RemoveAt(listUsers.FindString(login));
         }
+
+        private void ChatForm_Leave(object sender, EventArgs e)
+        {
+            if (isServer)
+            {
+
+            }
+            else
+            {
+                userChat.sendMessageObject(new TcpMessage(TcpMessage.TypeMsg.Logout, "", userChat.getUserInfo().getName()));
+            }
+        }
+
+
     }
 }
