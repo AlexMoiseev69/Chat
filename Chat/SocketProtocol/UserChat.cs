@@ -30,6 +30,8 @@ namespace Chat.SocketProtocol
             while (true)
             {
                 TcpMessage msg = listenMsgObject();
+                if (msg == null)
+                    break;
                 switch (msg.getType())
                 {
                     case TcpMessage.TypeMsg.Msg:
@@ -41,6 +43,18 @@ namespace Chat.SocketProtocol
                         break;
                     case TcpMessage.TypeMsg.Logout:
                         //TODO: implement this
+                        if (serverListener != null)
+                        {
+                            chatForm.removeUserToListByName(msg.getLogin());
+                            TcpClient client;
+                            serverListener.mapUsers.TryGetValue(msg.getLogin(), out client);
+                            if (client != null)
+                            {
+                                serverListener.mapUsers.Remove(msg.getLogin());
+                                client.Close();
+                            }
+                            serverListener.sendAnotherUsersMessage(new TcpMessage(TcpMessage.TypeMsg.Msg, "User with login '" + msg.getLogin() + "' has exited!",""), null);
+                        }
                         break;
                     default:
                         chatForm.printError(msg);
@@ -52,11 +66,15 @@ namespace Chat.SocketProtocol
 
         private TcpMessage listenMsgObject()
         {
-            NetworkStream stream = userInfo.getTcpClient().GetStream();
-            IFormatter formatter = new BinaryFormatter();
+            if (userInfo.getTcpClient().Connected)
+            {
+                NetworkStream stream = userInfo.getTcpClient().GetStream();
+                IFormatter formatter = new BinaryFormatter();
 
-            TcpMessage obj = (TcpMessage)formatter.Deserialize(stream);
-            return obj;
+                TcpMessage obj = (TcpMessage)formatter.Deserialize(stream);
+                return obj;
+            }
+            return null;
         }
 
         public UserInfo getUserInfo()

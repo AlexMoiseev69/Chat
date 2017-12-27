@@ -77,18 +77,22 @@ namespace Chat
 
         public void addUserToList(String login)
         {
-            listUsers.Invoke((MethodInvoker) delegate
+            listUsers.Invoke((MethodInvoker)delegate
             {
                 listUsers.Items.Add(login);
-            });   
+            }); 
         }
 
         public void removeUserToListByName(String login)
         {
-            listUsers.Items.RemoveAt(listUsers.FindString(login));
+            printMessageChat("User with login '" + login + "' has exited!");
+            listUsers.Invoke((MethodInvoker)delegate
+            {
+                listUsers.Items.RemoveAt(listUsers.FindString(login));
+            }); 
         }
 
-        private void ChatForm_Leave(object sender, EventArgs e)
+        private void ChatForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (isServer)
             {
@@ -97,6 +101,8 @@ namespace Chat
             else
             {
                 userChat.sendMessageObject(new TcpMessage(TcpMessage.TypeMsg.Logout, "", userChat.getUserInfo().getName()));
+                Thread.Sleep(1000);
+                userChat.getUserInfo().getTcpClient().Close();
             }
         }
 

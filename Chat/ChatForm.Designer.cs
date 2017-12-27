@@ -80,7 +80,7 @@
             this.Controls.Add(this.ChatRichTextForm);
             this.Name = "ChatForm";
             this.Text = "Form1";
-            this.Leave += new System.EventHandler(this.ChatForm_Leave);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ChatForm_FormClosing);
             this.ResumeLayout(false);
 
         }
